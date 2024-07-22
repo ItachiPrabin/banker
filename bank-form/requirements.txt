@@ -1,0 +1,3 @@
+pip install folium tkhtmlview
+pip install folium tkinterweb
+pip install tkcalendar
