@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 from tkcalendar import DateEntry
 from PIL import Image, ImageTk
 import webbrowser
@@ -94,6 +95,7 @@ class BankAccountApp(tk.Tk):
         if self.current_step > 0:
             self.set_step(self.current_step - 1)
 
+
 class GeneralDetailsPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="white")
@@ -108,16 +110,6 @@ class GeneralDetailsPage(tk.Frame):
         
         form_frame = tk.Frame(self, bg="white")
         form_frame.pack(fill="both", expand=True, padx=20, pady=10)
-
-        # Branch
-        tk.Label(form_frame, text="Branch", font=label_font, bg="white").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        self.branch_entry = tk.Entry(form_frame, font=entry_font, width=50)
-        self.branch_entry.grid(row=0, column=1, padx=10, pady=5)
-
-        # Purpose of Creating Bank Account
-        tk.Label(form_frame, text="Purpose of Creating Bank Account", font=label_font, bg="white").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        self.purpose_entry = tk.Entry(form_frame, font=entry_font, width=50)
-        self.purpose_entry.grid(row=1, column=1, padx=10, pady=5)
 
         # Full Name
         tk.Label(form_frame, text="Full Name", font=label_font, bg="white").grid(row=2, column=0, padx=10, pady=5, sticky="w")
@@ -205,35 +197,31 @@ class AddressDetailsPage(tk.Frame):
         # Checkbox for "Same as Permanent Address"
         self.same_address_var = tk.IntVar()
         same_address_check = tk.Checkbutton(self.form_frame, text="Same as Permanent Address", font=label_font, bg="white", variable=self.same_address_var, command=self.copy_permanent_address)
-        same_address_check.grid(row=12, column=0, columnspan=2, padx=10, pady=10, sticky="w")
+        same_address_check.grid(row=6, column=0, columnspan=2, padx=10, pady=10, sticky="w")
 
-        # Temporary Address Section
+        # Temporary Address Section with Permanent Address labels
         temp_address_label = tk.Label(self.form_frame, text="Temporary Address", font=("Helvetica", 14, "bold"), bg="white")
-        temp_address_label.grid(row=13, column=0, columnspan=2, padx=10, pady=10, sticky="w")
+        temp_address_label.grid(row=7, column=0, columnspan=2, padx=10, pady=10, sticky="w")
 
-        tk.Label(self.form_frame, text="Address Line 1", font=label_font, bg="white").grid(row=14, column=0, padx=10, pady=5, sticky="w")
-        self.temp_address1_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
-        self.temp_address1_entry.grid(row=14, column=1, padx=10, pady=5)
+        tk.Label(self.form_frame, text="Country of Residence", font=label_font, bg="white").grid(row=8, column=0, padx=10, pady=5, sticky="w")
+        self.temp_country_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
+        self.temp_country_entry.grid(row=8, column=1, padx=10, pady=5)
 
-        tk.Label(self.form_frame, text="Address Line 2", font=label_font, bg="white").grid(row=15, column=0, padx=10, pady=5, sticky="w")
-        self.temp_address2_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
-        self.temp_address2_entry.grid(row=15, column=1, padx=10, pady=5)
+        tk.Label(self.form_frame, text="District", font=label_font, bg="white").grid(row=9, column=0, padx=10, pady=5, sticky="w")
+        self.temp_district_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
+        self.temp_district_entry.grid(row=9, column=1, padx=10, pady=5)
 
-        tk.Label(self.form_frame, text="City", font=label_font, bg="white").grid(row=16, column=0, padx=10, pady=5, sticky="w")
-        self.temp_city_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
-        self.temp_city_entry.grid(row=16, column=1, padx=10, pady=5)
+        tk.Label(self.form_frame, text="Municipality", font=label_font, bg="white").grid(row=10, column=0, padx=10, pady=5, sticky="w")
+        self.temp_municipality_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
+        self.temp_municipality_entry.grid(row=10, column=1, padx=10, pady=5)
 
-        tk.Label(self.form_frame, text="State", font=label_font, bg="white").grid(row=17, column=0, padx=10, pady=5, sticky="w")
-        self.temp_state_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
-        self.temp_state_entry.grid(row=17, column=1, padx=10, pady=5)
-
-        tk.Label(self.form_frame, text="Zip Code", font=label_font, bg="white").grid(row=18, column=0, padx=10, pady=5, sticky="w")
-        self.temp_zip_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
-        self.temp_zip_entry.grid(row=18, column=1, padx=10, pady=5)
+        tk.Label(self.form_frame, text="Ward No.", font=label_font, bg="white").grid(row=11, column=0, padx=10, pady=5, sticky="w")
+        self.temp_ward_no_entry = tk.Entry(self.form_frame, font=entry_font, width=50)
+        self.temp_ward_no_entry.grid(row=11, column=1, padx=10, pady=5)
 
         # Button to Open Map
         self.map_btn = tk.Button(self.form_frame, text="Open Map", font=entry_font, command=self.open_map)
-        self.map_btn.grid(row=19, column=0, columnspan=2, padx=10, pady=10)
+        self.map_btn.grid(row=12, column=0, columnspan=2, padx=10, pady=10)
 
         self.create_navigation_buttons()
 
@@ -243,20 +231,17 @@ class AddressDetailsPage(tk.Frame):
 
     def copy_permanent_address(self):
         if self.same_address_var.get():
-            self.temp_address1_entry.delete(0, tk.END)
-            self.temp_address1_entry.insert(0, self.address1_entry.get())
+            self.temp_country_entry.delete(0, tk.END)
+            self.temp_country_entry.insert(0, self.country_entry.get())
 
-            self.temp_address2_entry.delete(0, tk.END)
-            self.temp_address2_entry.insert(0, self.address2_entry.get())
+            self.temp_district_entry.delete(0, tk.END)
+            self.temp_district_entry.insert(0, self.district_entry.get())
 
-            self.temp_city_entry.delete(0, tk.END)
-            self.temp_city_entry.insert(0, self.city_entry.get())
+            self.temp_municipality_entry.delete(0, tk.END)
+            self.temp_municipality_entry.insert(0, self.municipality_entry.get())
 
-            self.temp_state_entry.delete(0, tk.END)
-            self.temp_state_entry.insert(0, self.state_entry.get())
-
-            self.temp_zip_entry.delete(0, tk.END)
-            self.temp_zip_entry.insert(0, self.zip_entry.get())
+            self.temp_ward_no_entry.delete(0, tk.END)
+            self.temp_ward_no_entry.insert(0, self.ward_no_entry.get())
 
     def open_map(self):
         # Generate a map centered at Kathmandu
@@ -327,6 +312,7 @@ class FamilyDetailsPage(tk.Frame):
         next_btn = tk.Button(nav_frame, text="Next", command=self.controller.next_step)
         next_btn.pack(side="right", padx=5, pady=5)
 
+
 class BankDetailsPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="white")
@@ -364,6 +350,7 @@ class BankDetailsPage(tk.Frame):
 
         next_btn = tk.Button(nav_frame, text="Next", command=self.controller.next_step)
         next_btn.pack(side="right", padx=5, pady=5)
+
 
 class DepositoryDetailsPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -483,10 +470,56 @@ class UserAgreementPage(tk.Frame):
         form_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         tk.Label(form_frame, text="Terms and Conditions", font=label_font, bg="white").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        self.terms_text = tk.Text(form_frame, font=entry_font, width=50, height=10)
-        self.terms_text.grid(row=0, column=1, padx=10, pady=5)
-        self.terms_text.insert(tk.END, "Terms and conditions go here...")
 
+        self.terms_text = tk.Text(form_frame, font=entry_font, width=70, height=20, wrap="word", bg="lightgrey")
+        self.terms_text.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
+        self.terms_text.insert(tk.END, self.get_terms_and_conditions())
+        self.terms_text.config(state=tk.DISABLED)
+
+        self.terms_var = tk.IntVar()
+        terms_check = tk.Checkbutton(form_frame, text="I have read and agree to the terms and conditions", font=label_font, bg="white", variable=self.terms_var)
+        terms_check.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="w")
+
+        self.create_navigation_buttons()
+
+    def create_navigation_buttons(self):
+        nav_frame = tk.Frame(self, bg="white")
+        nav_frame.pack(side="bottom", fill="x", pady=10)
+
+        prev_btn = tk.Button(nav_frame, text="Previous", font=("Helvetica", 12), command=self.controller.previous_step)
+        prev_btn.pack(side="left", padx=5, pady=5)
+
+        next_btn = tk.Button(nav_frame, text="Next", font=("Helvetica", 12), command=self.next_step)
+        next_btn.pack(side="right", padx=5, pady=5)
+
+    def next_step(self):
+        if not self.terms_var.get():
+            messagebox.showwarning("Warning", "You must agree to the terms and conditions before proceeding.")
+        else:
+            self.controller.next_step()
+
+    def get_terms_and_conditions(self):
+        return (
+            "1. Introduction\n"
+            "Welcome to XYZ Bank. These terms and conditions outline the rules and regulations for the use of XYZ Bank's services.\n\n"
+            "2. Acceptance of Terms\n"
+            "By accessing this service, you accept these terms and conditions in full. Do not continue to use XYZ Bank's services if you do not accept all of the terms and conditions stated on this page.\n\n"
+            "3. Services\n"
+            "XYZ Bank offers a range of financial services including savings accounts, loans, and investment options. The specific terms and conditions of each service will be provided when you sign up for that service.\n\n"
+            "4. User Responsibilities\n"
+            "As a user, you are responsible for maintaining the confidentiality of your account information, including your username and password. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.\n\n"
+            "5. Privacy Policy\n"
+            "We are committed to protecting your privacy. Our privacy policy, which sets out how we will use your information, can be found on our website. By using our services, you consent to the processing described therein.\n\n"
+            "6. Limitation of Liability\n"
+            "XYZ Bank will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from (i) your use or inability to use the service; (ii) any unauthorized access to or use of our servers and/or any personal information stored therein.\n\n"
+            "7. Changes to the Terms\n"
+            "XYZ Bank reserves the right to revise these terms and conditions at any time. By using our services, you agree to be bound by the current version of these terms and conditions.\n\n"
+            "8. Governing Law\n"
+            "These terms and conditions are governed by and construed in accordance with the laws of [Your Country], and you irrevocably submit to the exclusive jurisdiction of the courts in that location.\n\n"
+            "9. Contact Us\n"
+            "If you have any questions about these terms and conditions, please contact us at support@xyzbank.com.\n\n"
+            "Thank you for choosing XYZ Bank.\n"
+        )
         self.create_navigation_buttons()
 
     def create_navigation_buttons(self):
