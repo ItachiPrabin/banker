@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Step Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #map {
+            height: 300px;
+        }
+
+        .submit-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .submit-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form id="multiStepForm">
+            <!-- General Details -->
+            <div class="form-group">
+                <label for="citizenshipCertificateNo">Citizenship Certificate no:</label>
+                <input type="text" id="citizenshipCertificateNo" />
+            </div>
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" />
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex</label>
+                <select id="sex">
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" />
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" />
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" />
+            </div>
+
+            <!-- Address Details -->
+            <div class="form-group">
+                <label for="district">District *</label>
+                <input type="text" id="district" name="district" />
+            </div>
+            <div class="form-group">
+                <label for="municipality">Municipality *</label>
+                <input type="text" id="municipality" name="municipality" />
+            </div>
+            <div class="form-group">
+                <label for="ward">Ward No. *</label>
+                <input type="text" id="ward" name="ward" />
+            </div>
+
+            <!-- Family Details -->
+            <div class="form-group">
+                <label for="fatherName">Father's Name</label>
+                <input type="text" id="fatherName" />
+            </div>
+            <div class="form-group">
+                <label for="motherName">Mother's Name</label>
+                <input type="text" id="motherName" />
+            </div>
+            <div class="form-group">
+                <label for="grandfatherName">Grandfather's Name</label>
+                <input type="text" id="grandfatherName" />
+            </div>
+
+            <div class="form-group">
+                <input type="checkbox" id="sameAsPermanent" />
+                <label for="sameAsPermanent">Same as Permanent Address</label>
+            </div>
+
+            <button id="addTemporaryBtn" class="text-blue-500">+ Add Temporary Address</button>
+            <div id="temporaryAddressMap" style="display: none;">
+                <div id="map"></div>
+            </div>
+
+            <!-- Profile Picture -->
+            <div class="form-group">
+                <label for="profilePicture">Profile Picture</label>
+                <img id="profilePicture" class="profile-pic" src="" alt="Profile Picture" />
+            </div>
+
+            <!-- Final Step -->
+            <div class="form-group">
+                <h2>Form Completed</h2>
+                <p>Thank you for completing the form. Click the button below to proceed to the next page.</p>
+            </div>
+
+            <div class="submit-container">
+                <button id="submitButton" class="next">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgBitNYqw46PnNqTsfCyxVg4_7772W0Fc",
+            authDomain: "bankrobot12.firebaseapp.com",
+            databaseURL: "https://bankrobot12-default-rtdb.firebaseio.com",
+            projectId: "bankrobot12",
+            storageBucket: "bankrobot12.appspot.com",
+            messagingSenderId: "661160441016",
+            appId: "1:661160441016:web:2a087596d75109e3f3704d",
+            measurementId: "G-GVM341TNT7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch data from Firebase
+            const userId = 'PRABIN_TIWARI';
+            database.ref(userId).once('value').then(snapshot => {
+                const data = snapshot.val();
+                document.getElementById('citizenshipCertificateNo').value = data.citizenshipCertificateNo || '';
+                document.getElementById('fullName').value = data.fullName || '';
+                document.getElementById('sex').value = data.sex || '';
+                document.getElementById('dob').value = data.dob || '';
+                document.getElementById('email').value = data.email || '';
+                document.getElementById('phone').value = data.phone || '';
+                document.getElementById('district').value = data.district || '';
+                document.getElementById('municipality').value = data.municipality || '';
+                document.getElementById('ward').value = data.ward || '';
+                document.getElementById('fatherName').value = data.fatherName || '';
+                document.getElementById('motherName').value = data.motherName || '';
+                document.getElementById('grandfatherName').value = data.grandfatherName || '';
+
+                // Fetch and display profile picture
+                const profilePicUrl = data.passportPhotoUrl;
+                if (profilePicUrl) {
+                    storage.refFromURL(profilePicUrl).getDownloadURL().then(url => {
+                        document.getElementById('profilePicture').src = url;
+                    });
+                }
+            });
+
+            document.getElementById('addTemporaryBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('temporaryAddressMap').style.display = 'block';
+                // Initialize map if needed
+            });
+
+            document.getElementById('submitButton').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'finalPage.html'; // Change 'finalPage.html' to your target page
+            });
+        });
+    </script>
+</body>
+
+</html>
