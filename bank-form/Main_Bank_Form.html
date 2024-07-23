@@ -2,10 +2,14 @@
 <html lang="en">
 
 <head>
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
     <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage-compat.js"></script>
+    <!-- Leaflet CSS and JavaScript -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-Step Form</title>
@@ -107,15 +111,15 @@
 
             <!-- Address Details -->
             <div class="form-group">
-                <label for="district">District *</label>
+                <label for="district">District</label>
                 <input type="text" id="district" name="district" />
             </div>
             <div class="form-group">
-                <label for="municipality">Municipality *</label>
+                <label for="municipality">Municipality</label>
                 <input type="text" id="municipality" name="municipality" />
             </div>
             <div class="form-group">
-                <label for="ward">Ward No. *</label>
+                <label for="ward">Ward No.</label>
                 <input type="text" id="ward" name="ward" />
             </div>
 
@@ -149,10 +153,22 @@
                 <img id="profilePicture" class="profile-pic" src="" alt="Profile Picture" />
             </div>
 
+            <div class="form-group">
+                <label for="backCiti">Citizenship Back</label>
+                <img id="backCiti" class="citi-back" src="" alt="Citizenship Back" />
+            </div>
+
+            <div class="form-group">
+                <label for="frontCiti">Citizenship Back</label>
+                <img id="frontCiti" class="citi-front" src="" alt="Citizenship Front" />
+            </div>
+
+
             <!-- Final Step -->
             <div class="form-group">
-                <h2>Form Completed</h2>
-                <p>Thank you for completing the form. Click the button below to proceed to the next page.</p>
+                <!-- <h2>Form Verified</h2> -->
+                <p>Thank you for reviewing your information, now click the button to get you bank account in your
+                    mail/phone.</p>
             </div>
 
             <div class="submit-container">
@@ -184,32 +200,52 @@
             const userId = 'PRABIN_TIWARI';
             database.ref(userId).once('value').then(snapshot => {
                 const data = snapshot.val();
-                document.getElementById('citizenshipCertificateNo').value = data.citizenshipCertificateNo || '';
-                document.getElementById('fullName').value = data.fullName || '';
-                document.getElementById('sex').value = data.sex || '';
-                document.getElementById('dob').value = data.dob || '';
-                document.getElementById('email').value = data.email || '';
-                document.getElementById('phone').value = data.phone || '';
-                document.getElementById('district').value = data.district || '';
-                document.getElementById('municipality').value = data.municipality || '';
-                document.getElementById('ward').value = data.ward || '';
-                document.getElementById('fatherName').value = data.fatherName || '';
-                document.getElementById('motherName').value = data.motherName || '';
-                document.getElementById('grandfatherName').value = data.grandfatherName || '';
+                if (data) {
+                    document.getElementById('citizenshipCertificateNo').value = data.citizenshipCertificateNo || '';
+                    document.getElementById('fullName').value = data.fullName || '';
+                    document.getElementById('sex').value = data.sex || '';
+                    document.getElementById('dob').value = data.dob || '';
+                    document.getElementById('email').value = data.email || '';
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('district').value = data.district || '';
+                    document.getElementById('municipality').value = data.municipality || '';
+                    document.getElementById('ward').value = data.ward || '';
+                    document.getElementById('fatherName').value = data.fatherName || '';
+                    document.getElementById('motherName').value = data.motherName || '';
+                    document.getElementById('grandfatherName').value = data.grandfatherName || '';
 
-                // Fetch and display profile picture
-                const profilePicUrl = data.passportPhotoUrl;
-                if (profilePicUrl) {
-                    storage.refFromURL(profilePicUrl).getDownloadURL().then(url => {
-                        document.getElementById('profilePicture').src = url;
-                    });
+                    // Fetch and display profile picture
+                    const profilePicUrl = data.passportPhotoUrl;
+                    if (profilePicUrl) {
+                        storage.refFromURL(profilePicUrl).getDownloadURL().then(url => {
+                            document.getElementById('profilePicture').src = url;
+                        });
+                    }
+                } else {
+                    console.error("No data available for userId:", userId);
                 }
+            }).catch(error => {
+                console.error("Error fetching data:", error);
             });
 
             document.getElementById('addTemporaryBtn').addEventListener('click', (e) => {
                 e.preventDefault();
                 document.getElementById('temporaryAddressMap').style.display = 'block';
-                // Initialize map if needed
+
+                // Initialize Leaflet map
+                const map = L.map('map').setView([27.7172, 85.3240], 13); // Centered on Kathmandu, Nepal
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                let marker;
+                map.on('click', function (e) {
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker(e.latlng).addTo(map);
+                });
             });
 
             document.getElementById('submitButton').addEventListener('click', (e) => {
