@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage-compat.js"></script>
+    <!-- Leaflet CSS and JavaScript -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Step Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #map {
+            height: 300px;
+        }
+
+        .submit-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .submit-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form id="multiStepForm">
+            <!-- General Details -->
+            <div class="form-group">
+                <label for="citizenshipCertificateNo">Citizenship Certificate no:</label>
+                <input type="text" id="citizenshipCertificateNo" />
+            </div>
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" />
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex</label>
+                <select id="sex">
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" />
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" />
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" />
+            </div>
+
+            <!-- Address Details -->
+            <div class="form-group">
+                <label for="district">District</label>
+                <input type="text" id="district" name="district" />
+            </div>
+            <div class="form-group">
+                <label for="municipality">Municipality</label>
+                <input type="text" id="municipality" name="municipality" />
+            </div>
+            <div class="form-group">
+                <label for="ward">Ward No.</label>
+                <input type="text" id="ward" name="ward" />
+            </div>
+
+            <!-- Family Details -->
+            <div class="form-group">
+                <label for="fatherName">Father's Name</label>
+                <input type="text" id="fatherName" />
+            </div>
+            <div class="form-group">
+                <label for="motherName">Mother's Name</label>
+                <input type="text" id="motherName" />
+            </div>
+            <div class="form-group">
+                <label for="grandfatherName">Grandfather's Name</label>
+                <input type="text" id="grandfatherName" />
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="sameAsPermanent" />
+                <label for="sameAsPermanent">Same as Permanent Address</label>
+            </div>
+            <div id="temporaryAddressFields"></div>
+
+            <button id="addTemporaryBtn" class="text-blue-500">+ Add Temporary Address</button>
+            <div id="temporaryAddressMap" style="display: none;">
+                <div id="map"></div>
+            </div>
+
+            <!-- Profile Picture -->
+            <div class="form-group">
+                <label for="profilePicture">Profile Picture</label>
+                <img id="profilePicture" class="profile-pic" src="" alt="Profile Picture" />
+            </div>
+
+            <div class="form-group">
+                <label for="backCiti">Citizenship Back</label>
+                <img id="backCiti" class="citi-back" src="" alt="Citizenship Back" />
+            </div>
+
+            <div class="form-group">
+                <label for="frontCiti">Citizenship Front</label>
+                <img id="frontCiti" class="citi-front" src="" alt="Citizenship Front" />
+            </div>
+
+            <!-- Final Step -->
+            <div class="form-group">
+                <p>Thank you for reviewing your information, now click the button to get your bank account in your
+                    mail/phone.</p>
+            </div>
+
+            <div class="submit-container">
+                <button id="submitButton" class="next">Submit</button>
+            </div>
+        </form>
+        <!-- Add Fetch Data Button -->
+        <div class="submit-container">
+            <button id="fetchDataButton" class="fetch">Fetch Data</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgBitNYqw46PnNqTsfCyxVg4_7772W0Fc",
+            authDomain: "bankrobot12.firebaseapp.com",
+            databaseURL: "https://bankrobot12-default-rtdb.firebaseio.com",
+            projectId: "bankrobot12",
+            storageBucket: "bankrobot12.appspot.com",
+            messagingSenderId: "661160441016",
+            appId: "1:661160441016:web:2a087596d75109e3f3704d",
+            measurementId: "G-GVM341TNT7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('fetchDataButton').addEventListener('click', () => {
+                // Fetch data for PRABIN_TIWARI
+                database.ref('extracted_data/PRABIN_TIWARI').once('value').then(snapshot => {
+                    const data = snapshot.val();
+                    console.log("Fetched data:", data); // Debugging log
+
+                    if (data) {
+                        // Populate form fields
+                        document.getElementById('citizenshipCertificateNo').value = data.CitizenshipCertificateNo || '';
+                        document.getElementById('fullName').value = data.fullName || 'PRABIN TIWARI';
+                        document.getElementById('fatherName').value = data["Father's Name"] || 'Shiva Prasad Tiwari';
+                        document.getElementById('motherName').value = data["Mother's Name"] || 'Panna Tiwari';
+                        document.getElementById('grandfatherName').value = data["Grandfather's Name"] || 'Shiva Prasad Tiwari';
+                        document.getElementById('email').value = data.email || '';
+                        document.getElementById('phone').value = data.phone || '9803 948966';
+
+                        // Fetch and display profile picture
+                        const profilePicUrl = data.PassportPhotoURL || 'https://storage.googleapis.com/bankrobot12.appspot.com/photo/PRABIN%20TIWARI.jpg';
+                        if (profilePicUrl) {
+                            storage.refFromURL(profilePicUrl).getDownloadURL().then(url => {
+                                document.getElementById('profilePicture').src = url;
+                            }).catch(error => console.error("Error fetching profile picture:", error));
+                        }
+
+                        // Fetch and display citizenship back image
+                        const backCitiUrl = data.BackImageURL || 'https://storage.googleapis.com/bankrobot12.appspot.com/back/PRABIN%20TIWARI.jpg';
+                        if (backCitiUrl) {
+                            storage.refFromURL(backCitiUrl).getDownloadURL().then(url => {
+                                document.getElementById('backCiti').src = url;
+                            }).catch(error => console.error("Error fetching citizenship back image:", error));
+                        }
+
+                        // Fetch and display citizenship front image
+                        const frontCitiUrl = data.FrontImageURL || 'https://storage.googleapis.com/bankrobot12.appspot.com/front/PRABIN%20TIWARI.jpg';
+                        if (frontCitiUrl) {
+                            storage.refFromURL(frontCitiUrl).getDownloadURL().then(url => {
+                                document.getElementById('frontCiti').src = url;
+                            }).catch(error => console.error("Error fetching citizenship front image:", error));
+                        }
+                    }
+                }).catch(error => console.error("Error fetching data:", error));
+            });
+        });
+    </script>
+</body>
+
+</html>
