@@ -94,25 +94,21 @@
                 <input type="text" id="fullName" />
             </div>
             <div class="form-group">
-                <label for="sex">Sex</label>
-                <select id="sex">
-                    <option value="">Select</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
+                <label for="sex">Gender</label>
+                <input type="text" id="sex" />
             </div>
+
             <div class="form-group">
                 <label for="dob">Date of Birth</label>
-                <input type="date" id="dob" />
+                <input type="text" id="dob" />
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" />
             </div>
             <div class="form-group">
-                <label for="phone">Phone</label>
-                <input type="tel" id="phone" />
+                <label for="phone">Phone No</label>
+                <input type="text" id="phone" />
             </div>
 
             <!-- Address Details -->
@@ -206,19 +202,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('fetchDataButton').addEventListener('click', () => {
                 // Fetch data for PRABIN_TIWARI
-                database.ref('extracted_data/PRABIN_TIWARI').once('value').then(snapshot => {
+                database.ref('extracted_data/Prabin Tiwari').once('value').then(snapshot => {
                     const data = snapshot.val();
                     console.log("Fetched data:", data); // Debugging log
 
                     if (data) {
                         // Populate form fields
-                        document.getElementById('citizenshipCertificateNo').value = data.CitizenshipCertificateNo || '';
-                        document.getElementById('fullName').value = data.fullName || 'PRABIN TIWARI';
-                        document.getElementById('fatherName').value = data["Father's Name"] || 'Shiva Prasad Tiwari';
-                        document.getElementById('motherName').value = data["Mother's Name"] || 'Panna Tiwari';
-                        document.getElementById('grandfatherName').value = data["Grandfather's Name"] || 'Shiva Prasad Tiwari';
-                        document.getElementById('email').value = data.email || '';
-                        document.getElementById('phone').value = data.phone || '9803 948966';
+                        document.getElementById('citizenshipCertificateNo').value = data["Citizenship Certificate No"];
+                        document.getElementById('fullName').value = data["Full Name"];
+                        document.getElementById('fatherName').value = data["Father's Name"];
+                        document.getElementById('motherName').value = data["Mother's Name"];
+                        document.getElementById('grandfatherName').value = data["Grandfather's Name"];
+                        document.getElementById('email').value = data["email"];
+                        document.getElementById('phone').value = data["Phone Number"];
+                        document.getElementById('sex').value = data["Sex"];
+                        document.getElementById('dob').value = data["Date of Birth"];
+                        document.getElementById('district').value = data["District"];
+                        document.getElementById('municipality').value = data["Municipality"];
+                        document.getElementById('ward').value = data["Ward"];
+
 
                         // Fetch and display profile picture
                         const profilePicUrl = data.PassportPhotoURL || 'https://storage.googleapis.com/bankrobot12.appspot.com/photo/PRABIN%20TIWARI.jpg';
@@ -245,6 +247,35 @@
                         }
                     }
                 }).catch(error => console.error("Error fetching data:", error));
+            });
+
+            document.getElementById('sameAsPermanent').addEventListener('change', (e) => {
+                const tempAddressContainer = document.getElementById('temporaryAddressFields');
+                if (e.target.checked) {
+                    const district = document.getElementById('district').value;
+                    const municipality = document.getElementById('municipality').value;
+                    const ward = document.getElementById('ward').value;
+
+                    tempAddressContainer.innerHTML = `
+                            <div class="form-group">
+                                <label for="tempDistrict">Temporary District</label>
+                                <input type="text" id="tempDistrict" name="tempDistrict" value="${district}" />
+                            </div>
+                            <div class="form-group">
+                                <label for="tempMunicipality">Temporary Municipality</label>
+                                <input type="text" id="tempMunicipality" name="tempMunicipality" value="${municipality}" />
+                            </div>
+                            <div class="form-group">
+                                <label for="tempWard">Temporary Ward No.</label>
+                                <input type="text" id="tempWard" name="tempWard" value="${ward}" />
+                            </div>`;
+                } else {
+                    tempAddressContainer.innerHTML = '';
+                }
+            });
+            document.getElementById('submitButton').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'finalPage.html'; // Change 'finalPage.html' to your target page
             });
         });
     </script>
